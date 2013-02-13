@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Archivos de código fuente">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Archivos de encabezado">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Archivos de recursos">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Archivos de código fuente\cpu">
+      <UniqueIdentifier>{d6666c2b-8e05-481a-a186-791ce929b4b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\cpu">
+      <UniqueIdentifier>{b9011963-6c91-4709-9f64-634125424e07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\core">
+      <UniqueIdentifier>{b8ba5aa5-23be-47c7-816c-0960e563652f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\rom">
+      <UniqueIdentifier>{4d36fea6-3482-4532-9b2c-fdc892065546}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de código fuente\rom">
+      <UniqueIdentifier>{6f910604-ff74-4e48-80db-5a8dfe18dc24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de código fuente\cpu\instructions">
+      <UniqueIdentifier>{038fa0ec-f6c4-4808-9d39-d67b6247044f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\cpu\instructions">
+      <UniqueIdentifier>{883b1a69-df8e-4783-9c65-f86678cf57d6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\source\rom\base_rom.cpp">
+      <Filter>Archivos de código fuente\rom</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\cpu\base_cpu.cpp">
+      <Filter>Archivos de código fuente\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\cpu\instructions\instruction_set.cpp">
+      <Filter>Archivos de código fuente\cpu\instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\cpu\instructions\instruction_handler.cpp">
+      <Filter>Archivos de código fuente\cpu\instructions</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\common.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cpu\base_cpu.h">
+      <Filter>Archivos de encabezado\cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\types.h">
+      <Filter>Archivos de encabezado\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\rom\base_rom.h">
+      <Filter>Archivos de encabezado\rom</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cpu\instructions\instruction_set.h">
+      <Filter>Archivos de encabezado\cpu\instructions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cpu\instructions\instruction_handler.h">
+      <Filter>Archivos de encabezado\cpu\instructions</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
