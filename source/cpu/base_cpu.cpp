@@ -155,3 +155,8 @@ bool GB_Z80::loadRom(const char* rom_file)
 
 	return true;
 }
+
+uint8_t GB_Z80::readFromPC()
+{
+	return mMemory[mRegisters.pc++];
+}

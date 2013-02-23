@@ -25,8 +25,9 @@
 #define RAM_SIZE		0x10000
 #define LOW(x)			x & 0xFF
 #define HIGH(x)			(x >> 8) & 0xFF
-#define SET_LOW(x,y)	x |= (y & 0xFF)
+#define SET_LOW(x,y)	x |= LOW(y)
 #define SET_HIGH(x,y)	x |= (y << 8) & 0xFF00
+#define SET(x,y,z)		SET_HIGH(x,z); SET_LOW(x,y)
 
 typedef uint16_t register_t;
 typedef uint8_t smallRegister_t;
@@ -123,6 +124,8 @@ public:
 
 	GB_Z80_InstructionHandler* mInstructionHandler;
 	GB_Z80_InstructionSet* mInstructionSet;
+
+	uint8_t readFromPC();
 private:
 	
 };

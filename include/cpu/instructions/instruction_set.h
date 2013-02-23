@@ -12,6 +12,7 @@ public:
 	void RegisterInstructions(GB_Z80* cpu);
 
 	void nop(uint8_t opcode, GB_Z80* cpu);
+	void ld(uint8_t opcode, GB_Z80* cpu);
 private:
 	void (GB_Z80_InstructionSet::*instruction)(uint8_t, GB_Z80*);
 };
