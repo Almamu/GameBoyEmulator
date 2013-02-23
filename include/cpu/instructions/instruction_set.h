@@ -5,6 +5,49 @@
 
 class GB_Z80;
 
+#define INC8(cpu, reg)							\
+	cpu->mRegisters.af.flags.addSub = 0;		\
+												\
+	if(reg >= 0xF)								\
+	{											\
+		cpu->mRegisters.af.flags.halfCarry = 1;	\
+	}											\
+	else										\
+	{											\
+		cpu->mRegisters.af.flags.halfCarry = 0;	\
+	}											\
+												\
+	reg ++;										\
+	if(reg == 0)								\
+	{											\
+		cpu->mRegisters.af.flags.zero = 1;		\
+	}											\
+	else										\
+	{											\
+		cpu->mRegisters.af.flags.zero = 0;		\
+	}											\
+												
+#define DEC8(cpu, reg)							\
+	cpu->mRegisters.af.flags.addSub = 1;		\
+												\
+	if(reg > 0xF)								\
+	{											\
+		cpu->mRegisters.af.flags.halfCarry = 1;	\
+	}											\
+	else										\
+	{											\
+		cpu->mRegisters.af.flags.halfCarry = 0;	\
+	}											\
+												\
+	if(reg == 0)								\
+	{											\
+		reg = 0xFF;								\
+	}											\
+	else										\
+	{											\
+		reg -= 1;								\
+	}											\
+												
 class GB_Z80_InstructionSet
 {
 public:
@@ -13,6 +56,8 @@ public:
 
 	void nop(uint8_t opcode, GB_Z80* cpu);
 	void ld(uint8_t opcode, GB_Z80* cpu);
+	void inc(uint8_t opcode, GB_Z80* cpu);
+
 private:
 	void (GB_Z80_InstructionSet::*instruction)(uint8_t, GB_Z80*);
 };

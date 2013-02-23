@@ -24,6 +24,8 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 									0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F
 								};
 
+	uint8_t incInstructions[] = { 0x03, 0x04, 0x0c, 0x13, 0x14, 0x1C, 0x23, 0x24, 0x2C, 0x33, 0x34, 0x3C };
+
 	// these loops makes our lifes easier
 	for(uint8_t cur = 0; cur < sizeof(nopInstructions); cur ++)
 	{
@@ -33,6 +35,11 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 	for(uint8_t cur = 0; cur < sizeof(ldInstructions); cur ++)
 	{
 		cpu->mInstructionHandler->RegisterHandler(ldInstructions[cur], cpu, this, &GB_Z80_InstructionSet::ld);
+	}
+
+	for(uint8_t cur = 0; cur < sizeof(incInstructions); cur ++)
+	{
+		cpu->mInstructionHandler->RegisterHandler(incInstructions[cur], cpu, this, &GB_Z80_InstructionSet::inc);
 	}
 }
 
@@ -60,10 +67,7 @@ void GB_Z80_InstructionSet::ld(uint8_t opcode, GB_Z80* cpu)
 
 		case 0x08: // ld (nn), sp
 			{
-				uint16_t addr = cpu->readFromPC() | (cpu->readFromPC() << 8);
-
-				cpu->mMemory[addr] = LOW(cpu->mRegisters.sp);
-				cpu->mMemory[addr + 1] = HIGH(cpu->mRegisters.sp);
+				((uint16_t*)(&cpu->mMemory[cpu->readFromPC() | (cpu->readFromPC() << 8)]))[0] = cpu->mRegisters.sp;
 			}
 			break;
 
@@ -101,6 +105,7 @@ void GB_Z80_InstructionSet::ld(uint8_t opcode, GB_Z80* cpu)
 
 		case 0x22: // ld (hl+), a
 			cpu->mMemory[cpu->mRegisters.hl] = cpu->mRegisters.af.a;
+			// TODO: inc hl here
 			break;
 
 		case 0x26: // ld h, n
@@ -391,4 +396,58 @@ void GB_Z80_InstructionSet::ld(uint8_t opcode, GB_Z80* cpu)
 	}
 
 	cpu->mTicks += 4;
+}
+
+void GB_Z80_InstructionSet::inc(uint8_t opcode, GB_Z80* cpu)
+{
+	switch(opcode)
+	{
+		case 0x03: // inc bc
+			cpu->mRegisters.bc ++;
+			break;
+
+		case 0x04: // inc b
+			INC8(cpu, HIGH(cpu->mRegisters.bc));
+			break;
+
+		case 0x0C: // inc c
+			INC8(cpu, LOW(cpu->mRegisters.bc));
+			break;
+
+		case 0x13: // inc de
+			cpu->mRegisters.de ++;
+			break;
+
+		case 0x14: // inc d
+			INC8(cpu, HIGH(cpu->mRegisters.de));
+			break;
+
+		case 0x1C: // inc e
+			INC8(cpu, LOW(cpu->mRegisters.de));
+			break;
+
+		case 0x23: // inc hl
+			cpu->mRegisters.hl ++;
+			break;
+
+		case 0x24: // inc h
+			INC8(cpu, HIGH(cpu->mRegisters.hl));
+			break;
+
+		case 0x2C: // inc l
+			INC8(cpu, LOW(cpu->mRegisters.hl));
+			break;
+
+		case 0x33: // inc sp
+			cpu->mRegisters.sp ++;
+			break;
+
+		case 0x34: // inc (hl)
+			INC8(cpu, cpu->mMemory[cpu->mRegisters.hl]);
+			break;
+
+		case 0x3C: // inc a
+			INC8(cpu, cpu->mRegisters.af.a);
+			break;
+	}
 }

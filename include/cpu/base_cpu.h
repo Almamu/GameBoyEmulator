@@ -23,10 +23,10 @@
 
 #define ROM_BANK_SIZE	0x4000
 #define RAM_SIZE		0x10000
-#define LOW(x)			x & 0xFF
-#define HIGH(x)			(x >> 8) & 0xFF
-#define SET_LOW(x,y)	x |= LOW(y)
-#define SET_HIGH(x,y)	x |= (y << 8) & 0xFF00
+#define LOW(x)			((uint8_t*)(&x))[1]
+#define HIGH(x)			((uint8_t*)(&x))[0]
+#define SET_LOW(x,y)	LOW(x) = y
+#define SET_HIGH(x,y)	HIGH(x) = y
 #define SET(x,y,z)		SET_HIGH(x,z); SET_LOW(x,y)
 
 typedef uint16_t register_t;
@@ -46,11 +46,11 @@ enum cpu_type_t
 
 enum interrupt_flags_t
 {
-	IE_VerticalBlank	= 0x01,
-	IE_LCDStart			= 0x02,
-	IE_Timer			= 0x04,
-	IE_Serial			= 0x08,
-	IE_Joypad			= 0x10
+	IF_VerticalBlank	= 0x01,
+	IF_LCDStart			= 0x02,
+	IF_Timer			= 0x04,
+	IF_Serial			= 0x08,
+	IF_Joypad			= 0x10
 };
 
 union flags_t

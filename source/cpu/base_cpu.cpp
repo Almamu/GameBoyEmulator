@@ -150,6 +150,7 @@ bool GB_Z80::loadRom(const char* rom_file)
 	}
 	catch(GB_ROM_Exception* ex)
 	{
+		ex;
 		return false;
 	}
 
