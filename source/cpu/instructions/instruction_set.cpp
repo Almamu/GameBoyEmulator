@@ -24,8 +24,9 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 									0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F
 								};
 
-	uint8_t incInstructions[] = { 0x03, 0x04, 0x0c, 0x13, 0x14, 0x1C, 0x23, 0x24, 0x2C, 0x33, 0x34, 0x3C };
-
+	uint8_t incInstructions[] = { 0x03, 0x04, 0x0C, 0x13, 0x14, 0x1C, 0x23, 0x24, 0x2C, 0x33, 0x34, 0x3C };
+	uint8_t decInstructions[] = { 0x05, 0x0B, 0x0D, 0x15, 0x1B, 0x1D, 0x25, 0x2B, 0x2D, 0x35, 0x3B, 0x3D };
+	
 	// these loops makes our lifes easier
 	for(uint8_t cur = 0; cur < sizeof(nopInstructions); cur ++)
 	{
@@ -40,6 +41,11 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 	for(uint8_t cur = 0; cur < sizeof(incInstructions); cur ++)
 	{
 		cpu->mInstructionHandler->RegisterHandler(incInstructions[cur], cpu, this, &GB_Z80_InstructionSet::inc);
+	}
+
+	for(uint8_t cur = 0; cur < sizeof(decInstructions); cur ++)
+	{
+		cpu->mInstructionHandler->RegisterHandler(decInstructions[cur], cpu, this, &GB_Z80_InstructionSet::dec);
 	}
 }
 
@@ -448,6 +454,60 @@ void GB_Z80_InstructionSet::inc(uint8_t opcode, GB_Z80* cpu)
 
 		case 0x3C: // inc a
 			INC8(cpu, cpu->mRegisters.af.a);
+			break;
+	}
+}
+
+void GB_Z80_InstructionSet::dec(uint8_t opcode, GB_Z80* cpu)
+{
+	switch(opcode)
+	{
+		case 0x05: // dec b
+			DEC8(cpu, HIGH(cpu->mRegisters.bc));
+			break;
+
+		case 0x0B: // dec bc
+			cpu->mRegisters.bc --;
+			break;
+
+		case 0x0D: // dec c
+			DEC8(cpu, LOW(cpu->mRegisters.bc));
+			break;
+
+		case 0x15: // dec d
+			DEC8(cpu, HIGH(cpu->mRegisters.de));
+			break;
+
+		case 0x1B: // dec de
+			cpu->mRegisters.de --;
+			break;
+
+		case 0x1D: // dec e
+			DEC8(cpu, LOW(cpu->mRegisters.de));
+			break;
+
+		case 0x25: // dec h
+			DEC8(cpu, HIGH(cpu->mRegisters.hl));
+			break;
+
+		case 0x2B: // dec hl
+			cpu->mRegisters.hl --;
+			break;
+
+		case 0x2D: // dec l
+			DEC8(cpu, LOW(cpu->mRegisters.hl));
+			break;
+
+		case 0x35: // dec (hl)
+			DEC8(cpu, cpu->mMemory[cpu->mRegisters.hl]);
+			break;
+
+		case 0x3B: // dec sp
+			cpu->mRegisters.sp --;
+			break;
+
+		case 0x3D: // dec a
+			DEC8(cpu, cpu->mRegisters.af.a);
 			break;
 	}
 }

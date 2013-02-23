@@ -18,6 +18,7 @@ class GB_Z80;
 	}											\
 												\
 	reg ++;										\
+												\
 	if(reg == 0)								\
 	{											\
 		cpu->mRegisters.af.flags.zero = 1;		\
@@ -39,15 +40,17 @@ class GB_Z80;
 		cpu->mRegisters.af.flags.halfCarry = 0;	\
 	}											\
 												\
+	reg--;										\
+												\
 	if(reg == 0)								\
 	{											\
-		reg = 0xFF;								\
+		cpu->mRegisters.af.flags.zero = 1;		\
 	}											\
 	else										\
 	{											\
-		reg -= 1;								\
+		cpu->mRegisters.af.flags.zero = 0;		\
 	}											\
-												
+
 class GB_Z80_InstructionSet
 {
 public:
@@ -57,6 +60,7 @@ public:
 	void nop(uint8_t opcode, GB_Z80* cpu);
 	void ld(uint8_t opcode, GB_Z80* cpu);
 	void inc(uint8_t opcode, GB_Z80* cpu);
+	void dec(uint8_t opcode, GB_Z80* cpu);
 
 private:
 	void (GB_Z80_InstructionSet::*instruction)(uint8_t, GB_Z80*);
