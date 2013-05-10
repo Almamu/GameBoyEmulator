@@ -77,6 +77,16 @@ struct registers_t
 	register_t pc;
 };
 
+class GB_Z80_StopRequested
+{
+public:
+	GB_Z80_StopRequested(std::string message, uint16_t address) : mMessage(message), mAddress(address) {}
+	~GB_Z80_StopRequested() {}
+
+	std::string mMessage;
+	uint16_t mAddress;
+};
+
 class GB_Z80
 {
 public:

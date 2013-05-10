@@ -13,6 +13,16 @@ struct instruction_handler_t
 	void (GB_Z80_InstructionSet::*handler)(uint8_t, GB_Z80*);
 };
 
+class GB_Z80_InstructionException
+{
+public:
+	GB_Z80_InstructionException(std::string message, uint16_t address) : mMessage(message), mAddress(address) {}
+	~GB_Z80_InstructionException() {}
+
+	std::string mMessage;
+	uint16_t mAddress;
+};
+
 class GB_Z80_InstructionHandler
 {
 public:
