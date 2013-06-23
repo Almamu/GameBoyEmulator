@@ -27,9 +27,12 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 	uint8_t incInstructions[] = { 0x03, 0x04, 0x0C, 0x13, 0x14, 0x1C, 0x23, 0x24, 0x2C, 0x33, 0x34, 0x3C };
 	uint8_t decInstructions[] = { 0x05, 0x0B, 0x0D, 0x15, 0x1B, 0x1D, 0x25, 0x2B, 0x2D, 0x35, 0x3B, 0x3D };
 	uint8_t addInstructions[] = { 0x19, 0x29, 0x39, 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87 };
+	uint8_t pushInstructions[] = { 0xC5, 0xD5, 0xE5, 0xF5 };
+	uint8_t popInstructions[] = { 0xC1, 0xD1, 0xE1, 0xF1 };
 
 	// these loops makes our lifes easier
 	uint8_t cur;
+
 	for(cur = 0; cur < sizeof(nopInstructions); cur ++)
 	{
 		cpu->mInstructionHandler->RegisterHandler(nopInstructions[cur], cpu, this, &GB_Z80_InstructionSet::nop);
@@ -53,6 +56,16 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 	for(cur = 0; cur < sizeof(addInstructions); cur ++)
 	{
 		cpu->mInstructionHandler->RegisterHandler(addInstructions[cur], cpu, this, &GB_Z80_InstructionSet::add);
+	}
+
+	for(cur = 0; cur < sizeof(pushInstructions); cur ++)
+	{
+		cpu->mInstructionHandler->RegisterHandler(pushInstructions[cur], cpu, this, &GB_Z80_InstructionSet::push);
+	}
+
+	for(cur = 0; cur < sizeof(popInstructions); cur ++)
+	{
+		cpu->mInstructionHandler->RegisterHandler(popInstructions[cur], cpu, this, &GB_Z80_InstructionSet::pop);
 	}
 
 	// RLCA
@@ -668,11 +681,11 @@ void GB_Z80_InstructionSet::rlca(uint8_t opcode, GB_Z80* cpu)
 
 void GB_Z80_InstructionSet::rrca(uint8_t opcode, GB_Z80* cpu)
 {
-	uint8_t high = cpu->mRegisters.af.a & 0x01;
+	uint8_t low = cpu->mRegisters.af.a & 0x01;
 
-	cpu->mRegisters.af.a <<= 1;
+	cpu->mRegisters.af.a >>= 1;
 
-	if(high == 0)
+	if(low == 0)
 	{
 		cpu->mRegisters.af.flags.carry = 0; // reset carry
 	}
@@ -782,4 +795,56 @@ void GB_Z80_InstructionSet::add(uint8_t opcode, GB_Z80* cpu)
 			cpu->mTicks += 4;
 			break;
 	}
+}
+
+void GB_Z80_InstructionSet::push(uint8_t opcode, GB_Z80* cpu)
+{
+	cpu->mRegisters.sp -= 2;
+
+	switch(opcode)
+	{
+		case 0xC5: // push bc
+			((uint16_t*)(&cpu->mMemory[cpu->mRegisters.sp]))[0] = cpu->mRegisters.bc;
+			break;
+
+		case 0xD5: // push de
+			((uint16_t*)(&cpu->mMemory[cpu->mRegisters.sp]))[0] = cpu->mRegisters.de;
+			break;
+
+		case 0xE5: // push hl
+			((uint16_t*)(&cpu->mMemory[cpu->mRegisters.sp]))[0] = cpu->mRegisters.hl;
+			break;
+
+		case 0xF5: // push af
+			memcpy(&((uint16_t*)(&cpu->mMemory[cpu->mRegisters.sp]))[0], &cpu->mRegisters.af, sizeof(register_t));
+			break;
+	}
+
+	cpu->mTicks += 16;
+}
+
+void GB_Z80_InstructionSet::pop(uint8_t opcode, GB_Z80* cpu)
+{
+	switch(opcode)
+	{
+		case 0xC1: // pop bc
+			cpu->mRegisters.bc = ((uint16_t*)(&cpu->mMemory[cpu->mRegisters.sp]))[0];
+			break;
+
+		case 0xD1: // pop de
+			cpu->mRegisters.de = ((uint16_t*)(&cpu->mMemory[cpu->mRegisters.sp]))[0];
+			break;
+
+		case 0xE1: // pop hl
+			cpu->mRegisters.hl = ((uint16_t*)(&cpu->mMemory[cpu->mRegisters.sp]))[0];
+			break;
+
+		case 0xF1: // pop af
+			memcpy(&cpu->mRegisters.af, &((uint16_t*)(&cpu->mMemory[cpu->mRegisters.sp]))[0], sizeof(uint16_t));
+			cpu->mRegisters.af.flags.unused = 0; // make sure this is always zero
+			break;
+	}
+
+	cpu->mRegisters.sp += 2;
+	cpu->mTicks += 12;
 }
