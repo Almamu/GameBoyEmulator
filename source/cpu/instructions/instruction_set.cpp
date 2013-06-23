@@ -26,11 +26,12 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 
 	uint8_t incInstructions[] = { 0x03, 0x04, 0x0C, 0x13, 0x14, 0x1C, 0x23, 0x24, 0x2C, 0x33, 0x34, 0x3C };
 	uint8_t decInstructions[] = { 0x05, 0x0B, 0x0D, 0x15, 0x1B, 0x1D, 0x25, 0x2B, 0x2D, 0x35, 0x3B, 0x3D };
-	uint8_t addInstructions[] = { 0x09, 0x19, 0x29, 0x39, 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87 };
+	uint8_t addInstructions[] = { 0x09, 0x19, 0x29, 0x39, 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0xC6 };
 	uint8_t pushInstructions[] = { 0xC5, 0xD5, 0xE5, 0xF5 };
 	uint8_t popInstructions[] = { 0xC1, 0xD1, 0xE1, 0xF1 };
 	uint8_t retInstructions[] = { 0xC0, 0xC8, 0xC9, 0xD0, 0xD8 };
 	uint8_t callInstructions[] = { 0xC4, 0xCC, 0xCD, 0xD4, 0xDC };
+	uint8_t jpInstructions[] = { 0xC3, 0xE9 };
 
 	// these loops makes our lifes easier
 	uint8_t cur;
@@ -80,6 +81,11 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 		cpu->mInstructionHandler->RegisterHandler(callInstructions[cur], cpu, this, &GB_Z80_InstructionSet::call);
 	}
 
+	for(cur = 0; cur < sizeof(jpInstructions); cur ++)
+	{
+		cpu->mInstructionHandler->RegisterHandler(jpInstructions[cur], cpu, this, &GB_Z80_InstructionSet::jp);
+	}
+
 	// RLCA
 	cpu->mInstructionHandler->RegisterHandler(0x07, cpu, this, &GB_Z80_InstructionSet::rlca);
 
@@ -91,6 +97,9 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 
 	// RLA
 	cpu->mInstructionHandler->RegisterHandler(0x17, cpu, this, &GB_Z80_InstructionSet::rla);
+
+	// RRA
+	cpu->mInstructionHandler->RegisterHandler(0x1F, cpu, this, &GB_Z80_InstructionSet::rra);
 
 	// JR
 	cpu->mInstructionHandler->RegisterHandler(0x18, cpu, this, &GB_Z80_InstructionSet::jr);
@@ -737,9 +746,10 @@ void GB_Z80_InstructionSet::rlca(uint8_t opcode, GB_Z80* cpu)
 		cpu->mRegisters.af.a |= 0x01; // keep old bit
 	}
 
+	// set flags to 0
 	cpu->mRegisters.af.flags.halfCarry = 0;
 	cpu->mRegisters.af.flags.addSub = 0;
-	cpu->mRegisters.af.flags.zero = 0; // not sure if this one should be changed
+	cpu->mRegisters.af.flags.zero = 0;
 
 	cpu->mTicks += 4;
 }
@@ -760,9 +770,10 @@ void GB_Z80_InstructionSet::rrca(uint8_t opcode, GB_Z80* cpu)
 		cpu->mRegisters.af.a |= 0x80; // keep old bit
 	}
 
+	// set flags to 0
 	cpu->mRegisters.af.flags.halfCarry = 0;
 	cpu->mRegisters.af.flags.addSub = 0;
-	cpu->mRegisters.af.flags.zero = 0; // not sure if this one should be changed
+	cpu->mRegisters.af.flags.zero = 0;
 
 	cpu->mTicks += 4;
 }
@@ -786,8 +797,25 @@ void GB_Z80_InstructionSet::stop(uint8_t opcode, GB_Z80* cpu)
 
 void GB_Z80_InstructionSet::rla(uint8_t opcode, GB_Z80* cpu)
 {
-	RL(cpu, cpu->mRegisters.af.a);
-	cpu->mRegisters.af.flags.zero = 0; // it must reset the zero flag
+	uint8_t high = cpu->mRegisters.af.a & 0x80;
+	uint8_t carry = cpu->mRegisters.af.flags.carry;
+
+	cpu->mRegisters.af.a <<= 1;
+
+	if(high == 0)
+	{
+		cpu->mRegisters.af.flags.carry = 0; // reset carry
+	}
+	else
+	{
+		cpu->mRegisters.af.flags.carry = 1; // set carry
+		cpu->mRegisters.af.a |= carry; // keep old bit
+	}
+
+	// set flags to 0
+	cpu->mRegisters.af.flags.halfCarry = 0;
+	cpu->mRegisters.af.flags.addSub = 0;
+	cpu->mRegisters.af.flags.zero = 0;
 
 	cpu->mTicks += 4;
 }
@@ -863,6 +891,11 @@ void GB_Z80_InstructionSet::add(uint8_t opcode, GB_Z80* cpu)
 		case 0x87: // add a, a
 			ADD8(cpu, cpu->mRegisters.af.a, cpu->mRegisters.af.a);
 			cpu->mTicks += 4;
+			break;
+
+		case 0xC6: // add a, n
+			ADD8(cpu, cpu->mRegisters.af.a, cpu->readFromPC());
+			cpu->mTicks += 8;
 			break;
 	}
 }
@@ -1124,4 +1157,45 @@ void GB_Z80_InstructionSet::ret(uint8_t opcode, GB_Z80* cpu)
 			}
 			break;
 	}
+}
+
+void GB_Z80_InstructionSet::jp(uint8_t opcode, GB_Z80* cpu)
+{
+	switch(opcode)
+	{
+		case 0xC3: // jp nn
+			SET(cpu->mRegisters.pc, cpu->readFromPC(), cpu->readFromPC());
+			cpu->mTicks += 16;
+			break;
+
+		case 0xE9: // jp hl
+			cpu->mRegisters.pc = cpu->mRegisters.hl;
+			cpu->mTicks += 4;
+			break;
+	}
+}
+
+void GB_Z80_InstructionSet::rra(uint8_t opcode, GB_Z80* cpu)
+{
+	uint8_t low = cpu->mRegisters.af.a & 0x01;
+	uint8_t carry = cpu->mRegisters.af.flags.carry;
+
+	cpu->mRegisters.af.a >>= 1;
+
+	if(low == 0)
+	{
+		cpu->mRegisters.af.flags.carry = 0; // reset carry
+	}
+	else
+	{
+		cpu->mRegisters.af.flags.carry = 1; // set carry
+		cpu->mRegisters.af.a |= carry << 7; // keep carry bit
+	}
+
+	// set flags to 0
+	cpu->mRegisters.af.flags.halfCarry = 0;
+	cpu->mRegisters.af.flags.addSub = 0;
+	cpu->mRegisters.af.flags.zero = 0;
+
+	cpu->mTicks += 4;
 }
