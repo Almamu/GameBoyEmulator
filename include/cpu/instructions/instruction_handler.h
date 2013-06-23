@@ -29,9 +29,14 @@ public:
 	static void RegisterHandler(uint8_t opcode, GB_Z80* cpu, GB_Z80_InstructionSet* set, void (GB_Z80_InstructionSet::*handler)(uint8_t, GB_Z80*));
 	static void UnregisterHandler(uint8_t opcode);
 
+	static void RegisterExtendedHandler(uint8_t opcode, GB_Z80* cpu, GB_Z80_InstructionSet* set, void (GB_Z80_InstructionSet::*handler)(uint8_t, GB_Z80*));
+	static void UnregisterExtendedHandler(uint8_t opcode);
+
 	static bool HandleOpcode(uint8_t opcode);
+	static bool HandleExtendedOpcode(uint8_t opcode);
 private:
 	static std::map<uint8_t, instruction_handler_t*> mHandlers;
+	static std::map<uint8_t, instruction_handler_t*> mExtendedHandlers;
 };
 
 #endif /* __INSTRUCTION_HANDLER_H__ */

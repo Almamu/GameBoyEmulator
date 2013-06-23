@@ -103,6 +103,27 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 
 	// JR
 	cpu->mInstructionHandler->RegisterHandler(0x18, cpu, this, &GB_Z80_InstructionSet::jr);
+
+	// extended opcodes
+	cpu->mInstructionHandler->RegisterHandler(0xCB, cpu, this, &GB_Z80_InstructionSet::ExtendedOpcodeHandler);
+}
+
+void GB_Z80_InstructionSet::RegisterExtendedInstructions(GB_Z80* cpu)
+{
+	uint8_t rlInstructions[] = { 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17 };
+	uint8_t rrInstructions[] = { 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F };
+
+	uint32_t cur = 0;
+
+	for(cur = 0; cur < sizeof(rlInstructions); cur ++)
+	{
+		cpu->mInstructionHandler->RegisterExtendedHandler(rlInstructions[cur], cpu, this, &GB_Z80_InstructionSet::rl);
+	}
+
+	for(cur = 0; cur < sizeof(rrInstructions); cur ++)
+	{
+		cpu->mInstructionHandler->RegisterExtendedHandler(rrInstructions[cur], cpu, this, &GB_Z80_InstructionSet::rr);
+	}
 }
 
 void GB_Z80_InstructionSet::nop(uint8_t opcode, GB_Z80* cpu)
@@ -1198,4 +1219,104 @@ void GB_Z80_InstructionSet::rra(uint8_t opcode, GB_Z80* cpu)
 	cpu->mRegisters.af.flags.zero = 0;
 
 	cpu->mTicks += 4;
+}
+
+void GB_Z80_InstructionSet::ExtendedOpcodeHandler(uint8_t opcode, GB_Z80* cpu)
+{
+	uint8_t extendedOpcode = cpu->readFromPC();
+
+	// call extended opcode handler
+	cpu->mInstructionHandler->HandleExtendedOpcode(extendedOpcode);
+}
+
+void GB_Z80_InstructionSet::rl(uint8_t opcode, GB_Z80* cpu)
+{
+	switch(opcode)
+	{
+		case 0x10: // rl b
+			RL(cpu, HIGH(cpu->mRegisters.bc));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x11: // rl c
+			RL(cpu, LOW(cpu->mRegisters.bc));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x12: // rl d
+			RL(cpu, HIGH(cpu->mRegisters.de));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x13: // rl e
+			RL(cpu, LOW(cpu->mRegisters.de));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x14: // rl h
+			RL(cpu, HIGH(cpu->mRegisters.hl));
+			cpu->mTicks += 8;
+			break;
+			
+		case 0x15: // rl l
+			RL(cpu, LOW(cpu->mRegisters.hl));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x16: // rl (hl)
+			RL(cpu, cpu->mMemory[cpu->mRegisters.hl]);
+			cpu->mTicks += 16;
+			break;
+
+		case 0x17: // rl a
+			RL(cpu, cpu->mRegisters.af.a);
+			cpu->mTicks += 8;
+			break;
+	}
+}
+
+void GB_Z80_InstructionSet::rr(uint8_t opcode, GB_Z80* cpu)
+{
+	switch(opcode)
+	{
+		case 0x18: // rr b
+			RR(cpu, HIGH(cpu->mRegisters.bc));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x19: // rr c
+			RR(cpu, LOW(cpu->mRegisters.bc));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x1A: // rr d
+			RR(cpu, HIGH(cpu->mRegisters.de));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x1B: // rr e
+			RR(cpu, LOW(cpu->mRegisters.de));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x1C: // rr h
+			RR(cpu, HIGH(cpu->mRegisters.hl));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x1D: // rr l
+			RR(cpu, LOW(cpu->mRegisters.hl));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x1E: // rr (hl)
+			RR(cpu, cpu->mMemory[cpu->mRegisters.hl]);
+			cpu->mTicks += 16;
+			break;
+
+		case 0x1F: // rr a
+			RR(cpu, cpu->mRegisters.af.a);
+			cpu->mTicks += 8;
+			break;
+	}
 }

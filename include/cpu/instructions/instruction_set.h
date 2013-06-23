@@ -128,6 +128,37 @@ class GB_Z80;
 	cpu->mRegisters.af.flags.addSub = 0;		\
 	cpu->mRegisters.af.flags.halfCarry = 0;		\
 
+#define RR(cpu, reg)							\
+	uint8_t low = reg & 0x01;					\
+												\
+	reg >>= 1;									\
+												\
+	if(cpu->mRegisters.af.flags.carry)			\
+	{											\
+		reg |= 0x80;							\
+	}											\
+												\
+	if(low)										\
+	{											\
+		cpu->mRegisters.af.flags.carry = 1;		\
+	}											\
+	else										\
+	{											\
+		cpu->mRegisters.af.flags.carry = 0;		\
+	}											\
+												\
+	if(reg == 0)								\
+	{											\
+		cpu->mRegisters.af.flags.zero = 1;		\
+	}											\
+	else										\
+	{											\
+		cpu->mRegisters.af.flags.zero = 0;		\
+	}											\
+												\
+	cpu->mRegisters.af.flags.addSub = 0;		\
+	cpu->mRegisters.af.flags.halfCarry = 0;		\
+
 #define ADD16(cpu, reg, val)					\
 	if( (reg & 0xFFF) + (val & 0xFFF) > 4095)	\
 	{											\
@@ -219,6 +250,7 @@ class GB_Z80_InstructionSet
 public:
 	void Call(void (GB_Z80_InstructionSet::*handler)(uint8_t, GB_Z80*), uint8_t opcode, GB_Z80* cpu);
 	void RegisterInstructions(GB_Z80* cpu);
+	void RegisterExtendedInstructions(GB_Z80* cpu);
 
 	void nop(uint8_t opcode, GB_Z80* cpu);
 	void ld(uint8_t opcode, GB_Z80* cpu);
@@ -236,6 +268,9 @@ public:
 	void ret(uint8_t opcode, GB_Z80* cpu);
 	void jp(uint8_t opcode, GB_Z80* cpu);
 	void rra(uint8_t opcode, GB_Z80* cpu);
+	void rl(uint8_t opcode, GB_Z80* cpu);
+	void rr(uint8_t opcode, GB_Z80* cpu);
+	void ExtendedOpcodeHandler(uint8_t opcode, GB_Z80* cpu);
 
 private:
 	void (GB_Z80_InstructionSet::*instruction)(uint8_t, GB_Z80*);

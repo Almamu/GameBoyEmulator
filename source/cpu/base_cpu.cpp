@@ -80,6 +80,7 @@ void GB_Z80::init(cpu_type_t system)
 
 	// register every handler
 	mInstructionSet->RegisterInstructions(this);
+	mInstructionSet->RegisterExtendedInstructions(this);
 }
 
 bool GB_Z80::loadRom(const char* rom_file)
