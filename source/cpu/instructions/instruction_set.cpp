@@ -13,7 +13,7 @@ void GB_Z80_InstructionSet::Call(void (GB_Z80_InstructionSet::*handler)(uint8_t,
 void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 {
 	uint8_t nopInstructions[] = {	0x00, 0xD3, 0xD8, 0xDD, 0xE3, 0xE4, 0xEB, 0xEC, 0xF4, 0xFC, 0xFD };
-	uint8_t ldInstructions[] = {
+	uint8_t ldInstructions[] = {	// TODO: ADD IO OPCODES
 									0x01, 0x02, 0x06, 0x08, 0x0A, 0x0E, 0x11, 0x12, 0x16, 0x1A, 0x1E,
 									0x21, 0x22, 0x26, 0x2A, 0x2E, 0x31, 0x32, 0x36, 0x3A, 0x3E, 0x40,
 									0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B,
@@ -26,9 +26,11 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 
 	uint8_t incInstructions[] = { 0x03, 0x04, 0x0C, 0x13, 0x14, 0x1C, 0x23, 0x24, 0x2C, 0x33, 0x34, 0x3C };
 	uint8_t decInstructions[] = { 0x05, 0x0B, 0x0D, 0x15, 0x1B, 0x1D, 0x25, 0x2B, 0x2D, 0x35, 0x3B, 0x3D };
-	uint8_t addInstructions[] = { 0x19, 0x29, 0x39, 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87 };
+	uint8_t addInstructions[] = { 0x09, 0x19, 0x29, 0x39, 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87 };
 	uint8_t pushInstructions[] = { 0xC5, 0xD5, 0xE5, 0xF5 };
 	uint8_t popInstructions[] = { 0xC1, 0xD1, 0xE1, 0xF1 };
+	uint8_t retInstructions[] = { 0xC0, 0xC8, 0xC9, 0xD0, 0xD8 };
+	uint8_t callInstructions[] = { 0xC4, 0xCC, 0xCD, 0xD4, 0xDC };
 
 	// these loops makes our lifes easier
 	uint8_t cur;
@@ -66,6 +68,16 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 	for(cur = 0; cur < sizeof(popInstructions); cur ++)
 	{
 		cpu->mInstructionHandler->RegisterHandler(popInstructions[cur], cpu, this, &GB_Z80_InstructionSet::pop);
+	}
+
+	for(cur = 0; cur < sizeof(retInstructions); cur ++)
+	{
+		cpu->mInstructionHandler->RegisterHandler(retInstructions[cur], cpu, this, &GB_Z80_InstructionSet::ret);
+	}
+
+	for(cur = 0; cur < sizeof(callInstructions); cur ++)
+	{
+		cpu->mInstructionHandler->RegisterHandler(callInstructions[cur], cpu, this, &GB_Z80_InstructionSet::call);
 	}
 
 	// RLCA
@@ -793,6 +805,11 @@ void GB_Z80_InstructionSet::add(uint8_t opcode, GB_Z80* cpu)
 {
 	switch(opcode)
 	{
+		case 0x09: // add hl, bc
+			ADD16(cpu, cpu->mRegisters.hl, cpu->mRegisters.bc);
+			cpu->mTicks += 8;
+			break;
+
 		case 0x19: // add hl, de
 			ADD16(cpu, cpu->mRegisters.hl, cpu->mRegisters.de);
 			cpu->mTicks += 8;
@@ -900,4 +917,211 @@ void GB_Z80_InstructionSet::pop(uint8_t opcode, GB_Z80* cpu)
 
 	cpu->mRegisters.sp += 2;
 	cpu->mTicks += 12;
+}
+
+void GB_Z80_InstructionSet::call(uint8_t opcode, GB_Z80* cpu)
+{
+	switch(opcode)
+	{
+		case 0xC4: // call nz, nn
+			{
+				// get call address
+				uint16_t addr = 0;
+				SET(addr, cpu->readFromPC(), cpu->readFromPC());
+
+				// check zero flag
+				if(cpu->mRegisters.af.flags.zero == 0)
+				{
+					// ok, condition is true, push PC to stack
+					cpu->mRegisters.sp -= 2;
+					memcpy(&cpu->mMemory[cpu->mRegisters.sp], &cpu->mRegisters.pc, sizeof(register_t));
+
+					// set PC to the readed address
+					cpu->mRegisters.pc = addr;
+
+					// ticks count
+					cpu->mTicks += 24;
+				}
+				else // condition not met, continue workflow
+				{
+					// ticks count
+					cpu->mTicks += 12;
+				}
+			}
+			break;
+
+		case 0xCC: // call z, nn
+			{
+				// get call address
+				uint16_t addr = 0;
+				SET(addr, cpu->readFromPC(), cpu->readFromPC());
+
+				// check zero flag
+				if(cpu->mRegisters.af.flags.zero == 1)
+				{
+					// ok, condition is true, push PC to stack
+					cpu->mRegisters.sp -= 2;
+					memcpy(&cpu->mMemory[cpu->mRegisters.sp], &cpu->mRegisters.pc, sizeof(register_t));
+
+					// set PC to the readed address
+					cpu->mRegisters.pc = addr;
+
+					// ticks count
+					cpu->mTicks += 24;
+				}
+				else // condition not met, continue workflow
+				{
+					// ticks count
+					cpu->mTicks += 12;
+				}
+			}
+			break;
+
+		case 0xCD:
+			{
+				// get call address
+				uint16_t addr = 0;
+				SET(addr, cpu->readFromPC(), cpu->readFromPC());
+				
+				// push PC to stack
+				cpu->mRegisters.sp -= 2;
+				memcpy(&cpu->mMemory[cpu->mRegisters.sp], &cpu->mRegisters.pc, sizeof(register_t));
+
+				// set PC to readed address
+				cpu->mRegisters.pc = addr;
+
+				// ticks count
+				cpu->mTicks += 24;
+			}
+			break;
+
+		case 0xD4: // call nc, nn
+			{
+				// get call address
+				uint16_t addr = 0;
+				SET(addr, cpu->readFromPC(), cpu->readFromPC());
+
+				// check zero flag
+				if(cpu->mRegisters.af.flags.carry == 0)
+				{
+					// ok, condition is true, push PC to stack
+					cpu->mRegisters.sp -= 2;
+					memcpy(&cpu->mMemory[cpu->mRegisters.sp], &cpu->mRegisters.pc, sizeof(register_t));
+
+					// set PC to the readed address
+					cpu->mRegisters.pc = addr;
+
+					// ticks count
+					cpu->mTicks += 24;
+				}
+				else // condition not met, continue workflow
+				{
+					// ticks count
+					cpu->mTicks += 12;
+				}
+			}
+			break;
+
+		case 0xDC: // call c, nn
+			{
+				// get call address
+				uint16_t addr = 0;
+				SET(addr, cpu->readFromPC(), cpu->readFromPC());
+
+				// check zero flag
+				if(cpu->mRegisters.af.flags.carry == 1)
+				{
+					// ok, condition is true, push PC to stack
+					cpu->mRegisters.sp -= 2;
+					memcpy(&cpu->mMemory[cpu->mRegisters.sp], &cpu->mRegisters.pc, sizeof(register_t));
+
+					// set PC to the readed address
+					cpu->mRegisters.pc = addr;
+
+					// ticks count
+					cpu->mTicks += 24;
+				}
+				else // condition not met, continue workflow
+				{
+					// ticks count
+					cpu->mTicks += 12;
+				}
+			}
+			break;
+	}
+}
+
+void GB_Z80_InstructionSet::ret(uint8_t opcode, GB_Z80* cpu)
+{
+	switch(opcode)
+	{
+		case 0xC0: // ret nz
+			if(cpu->mRegisters.af.flags.zero == 0)
+			{
+				// pop return address from stack and set PC
+				memcpy(&cpu->mRegisters.pc, &cpu->mMemory[cpu->mRegisters.sp], sizeof(register_t));
+				cpu->mRegisters.sp += 2;
+
+				cpu->mTicks += 20;
+			}
+			else
+			{
+				cpu->mTicks += 8;
+			}
+			break;
+
+		case 0xC8: // ret z
+			if(cpu->mRegisters.af.flags.zero == 1)
+			{
+				// pop return address from stack and set PC
+				memcpy(&cpu->mRegisters.pc, &cpu->mMemory[cpu->mRegisters.sp], sizeof(register_t));
+				cpu->mRegisters.sp += 2;
+
+				cpu->mTicks += 20;
+			}
+			else
+			{
+				cpu->mTicks += 8;
+			}
+			break;
+
+		case 0xC9:
+			// pop return address from stack and set PC
+			memcpy(&cpu->mRegisters.pc, &cpu->mMemory[cpu->mRegisters.sp], sizeof(register_t));
+			cpu->mRegisters.sp += 2;
+
+			// ticks count
+			cpu->mTicks += 16;
+			break;
+
+		case 0xD0: // ret nc
+			if(cpu->mRegisters.af.flags.carry == 0)
+			{
+				// pop return address from stack and set PC
+				memcpy(&cpu->mRegisters.pc, &cpu->mMemory[cpu->mRegisters.sp], sizeof(register_t));
+				cpu->mRegisters.sp += 2;
+
+				cpu->mTicks += 20;
+			}
+			else
+			{
+				cpu->mTicks += 8;
+			}
+			break;
+
+		case 0xD8: // ret c
+			if(cpu->mRegisters.af.flags.carry == 1)
+			{
+				// pop return address from stack and set PC
+				memcpy(&cpu->mRegisters.pc, &cpu->mMemory[cpu->mRegisters.sp], sizeof(register_t));
+				cpu->mRegisters.sp += 2;
+
+				cpu->mTicks += 20;
+			}
+			else
+			{
+				cpu->mTicks += 8;
+			}
+			break;
+	}
 }

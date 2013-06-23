@@ -232,6 +232,8 @@ public:
 	void add(uint8_t opcode, GB_Z80* cpu);
 	void push(uint8_t opcode, GB_Z80* cpu);
 	void pop(uint8_t opcode, GB_Z80* cpu);
+	void call(uint8_t opcode, GB_Z80* cpu);
+	void ret(uint8_t opcode, GB_Z80* cpu);
 
 private:
 	void (GB_Z80_InstructionSet::*instruction)(uint8_t, GB_Z80*);
