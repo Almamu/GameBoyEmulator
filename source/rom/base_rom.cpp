@@ -24,7 +24,7 @@ rom_data_t* GB_ROM::read()
 
 	fseek(mFileHandler, 0, SEEK_END);
 	int end = ftell(mFileHandler);
-	fseek(mFileHandler, 0, 0);
+	fseek(mFileHandler, 0, SEEK_SET);
 
 	// fill the structure data
 	romData->data = new uint8_t[end];

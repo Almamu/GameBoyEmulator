@@ -102,7 +102,7 @@ bool GB_Z80::loadRom(const char* rom_file)
 		if(mRomData->size > ROM_BANK_SIZE)
 		{
 			// we must handle multi-banked games too
-			memcpy(&mMemory[ROM_BANK_SIZE], &mRomData->data[ROM_BANK_SIZE], (mRomData->size > (ROM_BANK_SIZE * 2)) ? ROM_BANK_SIZE : (ROM_BANK_SIZE - mRomData->size));
+			memcpy(&mMemory[ROM_BANK_SIZE], &mRomData->data[ROM_BANK_SIZE], (mRomData->size > (ROM_BANK_SIZE * 2)) ? ROM_BANK_SIZE : (mRomData->size - ROM_BANK_SIZE));
 		}
 
 		// perform security checks on roms (TODO: port this to GB assembly and load from a ROM)
