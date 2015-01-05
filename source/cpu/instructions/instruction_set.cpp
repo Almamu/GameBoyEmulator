@@ -32,6 +32,7 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 	uint8_t retInstructions[] = { 0xC0, 0xC8, 0xC9, 0xD0, 0xD8 };
 	uint8_t callInstructions[] = { 0xC4, 0xCC, 0xCD, 0xD4, 0xDC };
 	uint8_t jpInstructions[] = { 0xC3, 0xE9 };
+	uint8_t swapInstructions[] = { 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37 };
 
 	// these loops makes our lifes easier
 	uint8_t cur;
@@ -84,6 +85,11 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 	for(cur = 0; cur < sizeof(jpInstructions); cur ++)
 	{
 		cpu->mInstructionHandler->RegisterHandler(jpInstructions[cur], cpu, this, &GB_Z80_InstructionSet::jp);
+	}
+
+	for(cur = 0; cur < sizeof(swapInstructions); cur ++)
+	{
+		cpu->mInstructionHandler->RegisterExtendedHandler(swapInstructions[cur], cpu, this, &GB_Z80_InstructionSet::swap);
 	}
 
 	// RLCA
@@ -1221,14 +1227,6 @@ void GB_Z80_InstructionSet::rra(uint8_t opcode, GB_Z80* cpu)
 	cpu->mTicks += 4;
 }
 
-void GB_Z80_InstructionSet::ExtendedOpcodeHandler(uint8_t opcode, GB_Z80* cpu)
-{
-	uint8_t extendedOpcode = cpu->readFromPC();
-
-	// call extended opcode handler
-	cpu->mInstructionHandler->HandleExtendedOpcode(extendedOpcode);
-}
-
 void GB_Z80_InstructionSet::rl(uint8_t opcode, GB_Z80* cpu)
 {
 	switch(opcode)
@@ -1316,6 +1314,60 @@ void GB_Z80_InstructionSet::rr(uint8_t opcode, GB_Z80* cpu)
 
 		case 0x1F: // rr a
 			RR(cpu, cpu->mRegisters.af.a);
+			cpu->mTicks += 8;
+			break;
+	}
+}
+
+void GB_Z80_InstructionSet::ExtendedOpcodeHandler(uint8_t opcode, GB_Z80* cpu)
+{
+	uint8_t extendedOpcode = cpu->readFromPC();
+
+	// call extended opcode handler
+	cpu->mInstructionHandler->HandleExtendedOpcode(extendedOpcode);
+}
+
+void GB_Z80_InstructionSet::swap(uint8_t opcode, GB_Z80* cpu)
+{
+	switch(opcode)
+	{
+		case 0x30: // swap b
+			SWAP(cpu, HIGH(cpu->mRegisters.bc));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x31: //swap c
+			SWAP(cpu, LOW(cpu->mRegisters.bc));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x32: //swap d
+			SWAP(cpu, HIGH(cpu->mRegisters.de));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x33: // swap e
+			SWAP(cpu, LOW(cpu->mRegisters.de));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x34: //swap h
+			SWAP(cpu, HIGH(cpu->mRegisters.hl));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x35: //swap l
+			SWAP(cpu, LOW(cpu->mRegisters.hl));
+			cpu->mTicks += 8;
+			break;
+
+		case 0x36: // swap (hl)
+			SWAP(cpu, cpu->mMemory[cpu->mRegisters.hl]);
+			cpu->mTicks += 16;
+			break;
+
+		case 0x37: // swap a
+			SWAP(cpu, cpu->mRegisters.af.a);
 			cpu->mTicks += 8;
 			break;
 	}

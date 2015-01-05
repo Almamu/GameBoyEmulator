@@ -106,7 +106,7 @@ class GB_Z80;
 }
 
 #define RL(cpu, reg)							\
-	{											\
+{												\
 	uint8_t high = reg & 0x80;					\
 												\
 	reg <<= 1;									\
@@ -136,10 +136,10 @@ class GB_Z80;
 												\
 	cpu->mRegisters.af.flags.addSub = 0;		\
 	cpu->mRegisters.af.flags.halfCarry = 0;		\
-	}
+}
 
 #define RR(cpu, reg)							\
-	{											\
+{												\
 	uint8_t low = reg & 0x01;					\
 												\
 	reg >>= 1;									\
@@ -169,10 +169,10 @@ class GB_Z80;
 												\
 	cpu->mRegisters.af.flags.addSub = 0;		\
 	cpu->mRegisters.af.flags.halfCarry = 0;		\
-	}
+}
 
 #define ADD16(cpu, reg, val)					\
-	{											\
+{												\
 	if( (reg & 0xFFF) + (val & 0xFFF) > 4095)	\
 	{											\
 		cpu->mRegisters.af.flags.halfCarry = 1;	\
@@ -193,10 +193,10 @@ class GB_Z80;
 												\
 	reg += val;									\
 	cpu->mRegisters.af.flags.addSub = 0;		\
-	}
+}
 
 #define ADD8(cpu, reg, val)						\
-	{											\
+{												\
 	if( (reg & 0x0F) + (val & 0x0F) > 4095)		\
 	{											\
 		cpu->mRegisters.af.flags.halfCarry = 1;	\
@@ -227,10 +227,10 @@ class GB_Z80;
 	}											\
 												\
 	cpu->mRegisters.af.flags.addSub = 0;		\
-	}
+}
 
 #define ADC(cpu, reg, val)						\
-	{											\
+{												\
 	if( (reg & 0x0F) + (val & 0x0F) > 4095)		\
 	{											\
 		cpu->mRegisters.af.flags.halfCarry = 1;	\
@@ -261,7 +261,24 @@ class GB_Z80;
 	}											\
 												\
 	cpu->mRegisters.af.flags.addSub = 0;		\
-	}
+}
+
+#define SWAP(cpu, reg)							\
+{												\
+	uint8_t high = (reg & 0xF0) >> 4;			\
+	uint8_t low = (reg & 0x0F);					\
+												\
+	if(high == 0 && low == 0)					\
+	{											\
+		cpu->mRegisters.af.flags.zero = 1;		\
+	}											\
+												\
+	reg = (high | (low << 4));					\
+												\
+	cpu->mRegisters.af.flags.addSub = 0;		\
+	cpu->mRegisters.af.flags.carry = 0;			\
+	cpu->mRegisters.af.flags.halfCarry = 0;		\
+}
 
 class GB_Z80_InstructionSet
 {
@@ -289,6 +306,7 @@ public:
 	void rl(uint8_t opcode, GB_Z80* cpu);
 	void rr(uint8_t opcode, GB_Z80* cpu);
 	void ExtendedOpcodeHandler(uint8_t opcode, GB_Z80* cpu);
+	void swap(uint8_t opcode, GB_Z80* cpu);
 
 private:
 	void (GB_Z80_InstructionSet::*instruction)(uint8_t, GB_Z80*);
