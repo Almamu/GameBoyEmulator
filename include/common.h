@@ -4,9 +4,8 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <stdint.h>
 #include <map>
-
-#include "core/types.h"
 
 #include "rom/base_rom.h"
 #include "cpu/instructions/instruction_set.h"

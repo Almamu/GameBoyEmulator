@@ -582,7 +582,7 @@ void GB_Z80_InstructionSet::ld(uint8_t opcode, GB_Z80* cpu)
 				int8_t dif = (int8_t)cpu->readFromPC();
 
 				// check carry and half carry flags first
-				if(cpu->mRegisters.sp & 0xF <= dif & 0xF)
+				if( (cpu->mRegisters.sp & 0xF) <= (dif & 0xF) )
 				{
 					cpu->mRegisters.af.flags.halfCarry = 1;
 				}
@@ -591,7 +591,7 @@ void GB_Z80_InstructionSet::ld(uint8_t opcode, GB_Z80* cpu)
 					cpu->mRegisters.af.flags.halfCarry = 0;
 				}
 
-				if(cpu->mRegisters.sp & 0xFF <= dif & 0xFF)
+				if( (cpu->mRegisters.sp & 0xFF) <= (dif & 0xFF) )
 				{
 					cpu->mRegisters.af.flags.carry = 1;
 				}

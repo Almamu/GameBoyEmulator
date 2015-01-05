@@ -85,7 +85,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\common.h" />
-    <ClInclude Include="..\include\core\types.h" />
     <ClInclude Include="..\include\cpu\base_cpu.h" />
     <ClInclude Include="..\include\cpu\instructions\instruction_handler.h" />
     <ClInclude Include="..\include\cpu\instructions\instruction_set.h" />

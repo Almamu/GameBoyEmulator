@@ -6,6 +6,7 @@
 class GB_Z80;
 
 #define INC8(cpu, reg)							\
+{												\
 	cpu->mRegisters.af.flags.addSub = 0;		\
 												\
 	if(reg >= 0xF)								\
@@ -27,8 +28,10 @@ class GB_Z80;
 	{											\
 		cpu->mRegisters.af.flags.zero = 0;		\
 	}											\
+}
 
 #define INC16(cpu, reg)							\
+{												\
 	cpu->mRegisters.af.flags.addSub = 0;		\
 												\
 	if(reg >= 0xFF)								\
@@ -50,8 +53,10 @@ class GB_Z80;
 	{											\
 		cpu->mRegisters.af.flags.zero = 0;		\
 	}											\
+}
 												
 #define DEC8(cpu, reg)							\
+{												\
 	cpu->mRegisters.af.flags.addSub = 1;		\
 												\
 	if(reg > 0xF)								\
@@ -73,8 +78,10 @@ class GB_Z80;
 	{											\
 		cpu->mRegisters.af.flags.zero = 0;		\
 	}											\
+}
 
 #define DEC16(cpu, reg)							\
+{												\
 	cpu->mRegisters.af.flags.addSub = 1;		\
 												\
 	if(reg > 0xFF)								\
@@ -96,8 +103,10 @@ class GB_Z80;
 	{											\
 		cpu->mRegisters.af.flags.zero = 0;		\
 	}											\
+}
 
 #define RL(cpu, reg)							\
+	{											\
 	uint8_t high = reg & 0x80;					\
 												\
 	reg <<= 1;									\
@@ -127,8 +136,10 @@ class GB_Z80;
 												\
 	cpu->mRegisters.af.flags.addSub = 0;		\
 	cpu->mRegisters.af.flags.halfCarry = 0;		\
+	}
 
 #define RR(cpu, reg)							\
+	{											\
 	uint8_t low = reg & 0x01;					\
 												\
 	reg >>= 1;									\
@@ -158,8 +169,10 @@ class GB_Z80;
 												\
 	cpu->mRegisters.af.flags.addSub = 0;		\
 	cpu->mRegisters.af.flags.halfCarry = 0;		\
+	}
 
 #define ADD16(cpu, reg, val)					\
+	{											\
 	if( (reg & 0xFFF) + (val & 0xFFF) > 4095)	\
 	{											\
 		cpu->mRegisters.af.flags.halfCarry = 1;	\
@@ -180,8 +193,10 @@ class GB_Z80;
 												\
 	reg += val;									\
 	cpu->mRegisters.af.flags.addSub = 0;		\
+	}
 
 #define ADD8(cpu, reg, val)						\
+	{											\
 	if( (reg & 0x0F) + (val & 0x0F) > 4095)		\
 	{											\
 		cpu->mRegisters.af.flags.halfCarry = 1;	\
@@ -212,8 +227,10 @@ class GB_Z80;
 	}											\
 												\
 	cpu->mRegisters.af.flags.addSub = 0;		\
+	}
 
 #define ADC(cpu, reg, val)						\
+	{											\
 	if( (reg & 0x0F) + (val & 0x0F) > 4095)		\
 	{											\
 		cpu->mRegisters.af.flags.halfCarry = 1;	\
@@ -244,6 +261,7 @@ class GB_Z80;
 	}											\
 												\
 	cpu->mRegisters.af.flags.addSub = 0;		\
+	}
 
 class GB_Z80_InstructionSet
 {

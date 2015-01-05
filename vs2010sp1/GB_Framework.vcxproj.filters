@@ -56,9 +56,6 @@
     <ClInclude Include="..\include\cpu\base_cpu.h">
       <Filter>Archivos de encabezado\cpu</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\core\types.h">
-      <Filter>Archivos de encabezado\core</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\rom\base_rom.h">
       <Filter>Archivos de encabezado\rom</Filter>
     </ClInclude>
