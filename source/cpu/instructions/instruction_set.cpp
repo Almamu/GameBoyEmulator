@@ -32,7 +32,6 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 	uint8_t retInstructions[] = { 0xC0, 0xC8, 0xC9, 0xD0, 0xD8 };
 	uint8_t callInstructions[] = { 0xC4, 0xCC, 0xCD, 0xD4, 0xDC };
 	uint8_t jpInstructions[] = { 0xC3, 0xE9 };
-	uint8_t swapInstructions[] = { 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37 };
 
 	// these loops makes our lifes easier
 	uint8_t cur;
@@ -87,11 +86,6 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 		cpu->mInstructionHandler->RegisterHandler(jpInstructions[cur], cpu, this, &GB_Z80_InstructionSet::jp);
 	}
 
-	for(cur = 0; cur < sizeof(swapInstructions); cur ++)
-	{
-		cpu->mInstructionHandler->RegisterExtendedHandler(swapInstructions[cur], cpu, this, &GB_Z80_InstructionSet::swap);
-	}
-
 	// RLCA
 	cpu->mInstructionHandler->RegisterHandler(0x07, cpu, this, &GB_Z80_InstructionSet::rlca);
 
@@ -116,8 +110,9 @@ void GB_Z80_InstructionSet::RegisterInstructions(GB_Z80* cpu)
 
 void GB_Z80_InstructionSet::RegisterExtendedInstructions(GB_Z80* cpu)
 {
-	uint8_t rlInstructions[] = { 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17 };
-	uint8_t rrInstructions[] = { 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F };
+	uint8_t rlInstructions[] =		{ 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17 };
+	uint8_t rrInstructions[] =		{ 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F };
+	uint8_t swapInstructions[] =	{ 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37 };
 
 	uint32_t cur = 0;
 
@@ -129,6 +124,11 @@ void GB_Z80_InstructionSet::RegisterExtendedInstructions(GB_Z80* cpu)
 	for(cur = 0; cur < sizeof(rrInstructions); cur ++)
 	{
 		cpu->mInstructionHandler->RegisterExtendedHandler(rrInstructions[cur], cpu, this, &GB_Z80_InstructionSet::rr);
+	}
+
+	for(cur = 0; cur < sizeof(swapInstructions); cur ++)
+	{
+		cpu->mInstructionHandler->RegisterExtendedHandler(swapInstructions[cur], cpu, this, &GB_Z80_InstructionSet::swap);
 	}
 }
 
